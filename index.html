@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playlist Submission Automation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        input[type="text"], input[type="url"], input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        h2 {
+            margin-bottom: 10px;
+        }
+        #submittedPlaylists {
+            display: none;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Playlist Submission Automation</h1>
+        <p>Automatically find and submit your music to relevant Spotify playlists.</p>
+        <form id="playlistForm">
+            <input type="text" id="songName" placeholder="Song Name" required><br>
+            <input type="url" id="spotifyLink" placeholder="Spotify URL or DistroKid Link" required><br>
+            <input type="file" id="songFile" accept="audio/*" required><br>
+            <button type="button" onclick="submitToPlaylists()">Submit</button>
+        </form>
+        <p id="playlistResult"></p>
+        <div id="submittedPlaylists">
+            <h3>Submitted to the Following Playlists:</h3>
+            <ul id="playlistsList"></ul>
+        </div>
+    </div>
+
+    <script>
+        async function submitToPlaylists() {
+            const songName = document.getElementById('songName').value;
+            const spotifyLink = document.getElementById('spotifyLink').value;
+            const songFile = document.getElementById('songFile').files[0];
+
+            if (!songName || !spotifyLink || !songFile) {
+                alert('Please provide all the required information.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('songName', songName);
+            formData.append('spotifyLink', spotifyLink);
+            formData.append('songFile', songFile);
+
+            try {
+                // Update the URL to point to your backend server
+                const response = await fetch('http://localhost:5000/api/submit', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                document.getElementById('playlistResult').innerText = result.message;
+
+                const playlists = result.playlists;
+                const playlistsList = document.getElementById('playlistsList');
+                playlistsList.innerHTML = '';
+
+                playlists.forEach(playlist => {
+                    const li = document.createElement('li');
+                    li.innerText = playlist;
+                    playlistsList.appendChild(li);
+                });
+
+                document.getElementById('submittedPlaylists').style.display = 'block';
+
+            } catch (error) {
+                document.getElementById('playlistResult').innerText = 'Error submitting song: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>
